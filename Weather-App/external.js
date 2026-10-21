@@ -51,18 +51,18 @@ async function getWeatherData(city) {
   const url = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${city}&days=7&aqi=no&alerts=no`;
 
   try {
-    loader.parentElement.style.display = "flex";//show loader
+    loader.parentElement.style.display = "flex"; //show loader
 
     const response = await fetch(url);
 
     if (!response.ok) {
-      error.style.display = "block";//error message
+      error.style.display = "block"; //error message
       loader.parentElement.style.display = "none";
       return;
     }
 
     const data = await response.json();
-    error.style.display = "none";//hide error if success
+    error.style.display = "none"; //hide error if success
 
     weatherData = data; //  Save the data for switching units
     //loading for error
@@ -72,8 +72,8 @@ async function getWeatherData(city) {
     }, 2000);
   } catch (err) {
     console.log("Fetch error:", err);
-    error.style.display = "block";// مشكله فى الشبكه
-    loader.parentElement.style.display = "none";// loader -> none
+    error.style.display = "block"; // مشكله فى الشبكه
+    loader.parentElement.style.display = "none"; // loader -> none
   }
 }
 
@@ -90,7 +90,7 @@ function updateUI(data) {
     "en-US",
     {
       month: "short",
-    }
+    },
   )}, ${currentDate.toLocaleString("en-US", { weekday: "long" })}`;
   dateElement.textContent = formattedDate;
 
@@ -99,23 +99,30 @@ function updateUI(data) {
     ? `${Math.round(current.temp_f)}°/${Math.round(current.feelslike_f)}°`
     : `${Math.round(current.temp_c)}°/${Math.round(current.feelslike_c)}°`;
 
-  weatherImageElement.src = current.condition.icon;
+  // weatherImageElement.src = current.condition.icon;
 
-  // Forecast
+  // 7hoursForecast
+  // 3-Hours Forecast (8 times a day)
+  // const forecastSectionsElement = document.querySelector(".forecastsections");
   forecastSectionsElement.innerHTML = "";
-  forecast.slice(0, 7).forEach((day, index) => {
+  const hours = forecast[0].hour;
+  const threeHourForecast = hours.filter((_, index) => index % 4 === 0);
+  threeHourForecast.forEach((hourData) => {
+    const hourTime = new Date(hourData.time).toLocaleString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const temp = isFahrenheit
+      ? `${Math.round(hourData.temp_f)}°F`
+      : `${Math.round(hourData.temp_c)}°C`;
+
     const forecastDiv = document.createElement("div");
-    forecastDiv.classList.add("forecast" + (index + 1));
+    forecastDiv.classList.add("forecast-item");
     forecastDiv.innerHTML = `
-      <p class="timer">${day.date}</p>
-      <img src="${day.day.condition.icon}" alt="${day.day.condition.text}" />
-      <p class="tempreture">
-        ${
-          isFahrenheit
-            ? Math.round(day.day.avgtemp_f)
-            : Math.round(day.day.avgtemp_c)
-        }°
-      </p>
+      <p class="timer">${hourTime}</p>
+      <img src="${hourData.condition.icon}" alt="${hourData.condition.text}"/>
+      <p class="temperature">${temp}</p>
     `;
     forecastSectionsElement.appendChild(forecastDiv);
   });
@@ -189,31 +196,23 @@ function updateUI(data) {
     </div>
   `;
 
-  // 7 Days Forecast
+  // 3 Days Forecast
+  const daysElement = document.querySelector(".days");
   daysElement.innerHTML = "";
-  forecast.forEach((day, index) => {
+  forecast.slice(0, 3).forEach((day) => {
     const dayDiv = document.createElement("div");
-    dayDiv.classList.add(`day${index + 1}`);
-    dayDiv.innerHTML = `
-      <div class="day${index + 1}-1">
-        ${new Date(day.date).toLocaleDateString("en-US", {
-          day: "numeric",
-          month: "short",
-        })}
-        <p class="dayname">${new Date(day.date).toLocaleString("en-US", {
-          weekday: "short",
-        })}</p>
-      </div>
-      <div class="day${index + 1}-2">
-        <img src="${day.day.condition.icon}" alt="${day.day.condition.text}" />
-        ${day.day.condition.text}
-      </div>
-      <div class="day${index + 1}-3">${
-      isFahrenheit
-        ? `${Math.round(day.day.maxtemp_f)}°/${Math.round(day.day.mintemp_f)}°`
-        : `${Math.round(day.day.maxtemp_c)}°/${Math.round(day.day.mintemp_c)}°`
-    }</div>
-    `;
+    dayDiv.classList.add("day-item");
+    dayDiv.innerHTML = `  <p class="timer">${day.date}</p>
+    <p class="day'sname">${new Date(day.date).toLocaleString("en-US", { weekday: "short" })}
+    </p>
+    <img src="${day.day.condition.icon}"alt="${day.day.condition.text}"/>
+    <p class="condition">${day.day.condition.text}</p>
+    <p class="temperature">${Math.round(day.day.avgtemp_c)}°</p>
+     <div class="Tempreverse">${
+       isFahrenheit
+         ? `${Math.round(day.day.maxtemp_f)}°/${Math.round(day.day.mintemp_f)}°`
+         : `${Math.round(day.day.maxtemp_c)}°/${Math.round(day.day.mintemp_c)}°`
+     }</div>`;
     daysElement.appendChild(dayDiv);
   });
 }
