@@ -25,10 +25,214 @@ function showError() {
   }, 1200);
 }
 
-// Hide error message when user starts typing
+const suggestionList = document.querySelector(".suggestion-list");
+let debounceTimer = null;
+
+// Search Input Suggestions & Hide error message
 searchInput.addEventListener("input", () => {
   error.style.display = "none";
   if (errorTimeout) clearTimeout(errorTimeout);
+  const query = searchInput.value.trim();
+  if (query.length === 0) {
+    suggestionList.innerHTML = "";
+    suggestionList.classList.remove("active");
+    return;
+  }
+
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    fetchSuggestions(query);
+  }, 250);
+});
+
+// Arabic & Popular Cities fallback database
+const popularCities = [
+  { name: "Cairo", nameAr: "القاهرة", country: "Egypt", countryAr: "مصر" },
+  {
+    name: "Alexandria",
+    nameAr: "الإسكندرية",
+    country: "Egypt",
+    countryAr: "مصر",
+  },
+  { name: "Giza", nameAr: "الجيزة", country: "Egypt", countryAr: "مصر" },
+  { name: "Port Said", nameAr: "بورسعيد", country: "Egypt", countryAr: "مصر" },
+  { name: "Suez", nameAr: "السويس", country: "Egypt", countryAr: "مصر" },
+  { name: "Luxor", nameAr: "الأقصر", country: "Egypt", countryAr: "مصر" },
+  { name: "Aswan", nameAr: "أسوان", country: "Egypt", countryAr: "مصر" },
+  { name: "Mansoura", nameAr: "المنصورة", country: "Egypt", countryAr: "مصر" },
+  { name: "Tanta", nameAr: "طنطا", country: "Egypt", countryAr: "مصر" },
+  {
+    name: "Ismailia",
+    nameAr: "الإسماعيلية",
+    country: "Egypt",
+    countryAr: "مصر",
+  },
+  { name: "Fayoum", nameAr: "الفيوم", country: "Egypt", countryAr: "مصر" },
+  { name: "Zagazig", nameAr: "الزقازيق", country: "Egypt", countryAr: "مصر" },
+  { name: "Damietta", nameAr: "دمياط", country: "Egypt", countryAr: "مصر" },
+  { name: "Asyut", nameAr: "أسيوط", country: "Egypt", countryAr: "مصر" },
+  { name: "Minya", nameAr: "المنيا", country: "Egypt", countryAr: "مصر" },
+  { name: "Beni Suef", nameAr: "بني سويف", country: "Egypt", countryAr: "مصر" },
+  { name: "Hurghada", nameAr: "الغردقة", country: "Egypt", countryAr: "مصر" },
+  {
+    name: "Sharm El Sheikh",
+    nameAr: "شرم الشيخ",
+    country: "Egypt",
+    countryAr: "مصر",
+  },
+  { name: "Sohag", nameAr: "سوهاج", country: "Egypt", countryAr: "مصر" },
+  { name: "Qena", nameAr: "قنا", country: "Egypt", countryAr: "مصر" },
+  { name: "Dubai", nameAr: "دبي", country: "UAE", countryAr: "الإمارات" },
+  {
+    name: "Abu Dhabi",
+    nameAr: "أبوظبي",
+    country: "UAE",
+    countryAr: "الإمارات",
+  },
+  {
+    name: "Riyadh",
+    nameAr: "الرياض",
+    country: "Saudi Arabia",
+    countryAr: "السعودية",
+  },
+  {
+    name: "Jeddah",
+    nameAr: "جدة",
+    country: "Saudi Arabia",
+    countryAr: "السعودية",
+  },
+  {
+    name: "Mecca",
+    nameAr: "مكة المكرمة",
+    country: "Saudi Arabia",
+    countryAr: "السعودية",
+  },
+  {
+    name: "Medina",
+    nameAr: "المدينة المنورة",
+    country: "Saudi Arabia",
+    countryAr: "السعودية",
+  },
+  { name: "Doha", nameAr: "الدوحة", country: "Qatar", countryAr: "قطر" },
+  {
+    name: "Kuwait City",
+    nameAr: "الكويت",
+    country: "Kuwait",
+    countryAr: "الكويت",
+  },
+  { name: "Amman", nameAr: "عمان", country: "Jordan", countryAr: "الأردن" },
+  { name: "Beirut", nameAr: "بيروت", country: "Lebanon", countryAr: "لبنان" },
+  { name: "Baghdad", nameAr: "بغداد", country: "Iraq", countryAr: "العراق" },
+  { name: "Damascus", nameAr: "دمشق", country: "Syria", countryAr: "سوريا" },
+  {
+    name: "London",
+    nameAr: "لندن",
+    country: "United Kingdom",
+    countryAr: "بريطانيا",
+  },
+  { name: "Paris", nameAr: "باريس", country: "France", countryAr: "فرنسا" },
+  {
+    name: "New York",
+    nameAr: "نيويورك",
+    country: "United States",
+    countryAr: "أمريكا",
+  },
+];
+
+// Fetch city suggestions from WeatherAPI + Arabic fallback
+async function fetchSuggestions(query) {
+  const isArabic = /[\u0600-\u06FF]/.test(query);
+
+  let localMatches = popularCities
+    .filter(
+      (c) =>
+        c.nameAr.includes(query) ||
+        c.name.toLowerCase().includes(query.toLowerCase()),
+    )
+    .map((c) => ({
+      name: c.name,
+      displayName: `${c.nameAr} (${c.name})`,
+      country: c.countryAr || c.country,
+    }));
+
+  if (isArabic) {
+    renderSuggestions(localMatches);
+    return;
+  }
+
+  const url = `https://api.weatherapi.com/v1/search.json?key=${API_KEY}&q=${encodeURIComponent(query)}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      renderSuggestions(localMatches);
+      return;
+    }
+
+    const apiCities = await response.json();
+    const formattedApi = apiCities.map((c) => ({
+      name: c.name,
+      displayName: c.name,
+      country: c.country,
+    }));
+
+    // Combine results without duplicates
+    const combined = [...formattedApi];
+    localMatches.forEach((loc) => {
+      if (
+        !combined.some(
+          (item) => item.name.toLowerCase() === loc.name.toLowerCase(),
+        )
+      ) {
+        combined.push(loc);
+      }
+    });
+
+    renderSuggestions(combined);
+  } catch (err) {
+    console.log("Suggestions error:", err);
+    renderSuggestions(localMatches);
+  }
+}
+
+// Render suggestions list
+function renderSuggestions(cities) {
+  if (!cities || cities.length === 0) {
+    suggestionList.innerHTML = "";
+    suggestionList.classList.remove("active");
+    return;
+  }
+
+  suggestionList.innerHTML = cities
+    .slice(0, 7)
+    .map(
+      (city) => `
+    <li class="suggestion-item" data-name="${city.name}">
+      <i class="fa-solid fa-location-dot"></i>
+      <span><strong>${city.displayName || city.name}</strong>, <small style="color: #64748b;">${city.country}</small></span>
+    </li>
+  `,
+    )
+    .join("");
+
+  suggestionList.classList.add("active");
+
+  const items = suggestionList.querySelectorAll(".suggestion-item");
+  items.forEach((item) => {
+    item.addEventListener("click", () => {
+      const cityName = item.getAttribute("data-name");
+      searchInput.value = cityName;
+      suggestionList.classList.remove("active");
+      getWeatherData(cityName);
+    });
+  });
+}
+
+// Close suggestions dropdown when clicking outside
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".search-box")) {
+    suggestionList.classList.remove("active");
+  }
 });
 
 // Toggle Units
@@ -52,13 +256,16 @@ function updateTemperatureUI() {
   }
 }
 
-// Search Input //Enter
+// Search Input //Enter & Escape
 searchInput.addEventListener("keydown", function (e) {
   if (e.key === "Enter") {
+    suggestionList.classList.remove("active");
     const city = searchInput.value.trim();
     if (city) {
       getWeatherData(city);
     }
+  } else if (e.key === "Escape") {
+    suggestionList.classList.remove("active");
   }
 });
 getWeatherData(`Cairo`);
