@@ -9,6 +9,10 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <!-- ********************Header*********************** -->
@@ -17,32 +21,26 @@
     </div>
 
     <header class="weather-app">
-      <span class="weather">
-        <img src="images/weather.png" /> weather App<input
-          type="text"
-          placeholder="Search for tempreture"
-          class="search"
-        />
-      </span>
-
+      <div class="weather">
+        <img src="images/weather.png" alt="weather logo" />
+        <span>Weather App</span>
+      </div>
+      <input type="text" placeholder="Search for City....." class="search"  autocomplete="off"/>
+      <ul class="suggestion-list"></ul>
       <div class="switch">
         <label>
-          <span class="C"> °C </span>
+          <span class="C active"> °C </span>
           <span class="F"> °F </span>
         </label>
       </div>
     </header>
-
+    
     <!-- ****************Alert********************* -->
     <div class="error">
       <p>
-        <i class="fa-solid fa-skull-crossbones"></i> Please,Enter Name Correct
+        <i class="fa-solid fa-triangle-exclamation"></i> City not found. Please
+        enter a valid name.....
       </p>
-    </div>
-
-    <!-- loading -->
-    <div class="loader-container">
-      <span class="loader"></span>
     </div>
     <!-- ******************************************* -->
     <!-- ********************End of Header*********************** -->
@@ -56,9 +54,14 @@
             <p class="date">--</p>
             <p class="name">Cairo</p>
             <p class="temp">--</p>
+            <p class="condition-desc">--</p>
           </div>
           <div class="image">
-            <img src="" />
+            <img
+              class="img-weather"
+              src="images/mostly-sunny.png"
+              alt="weather condition"
+            />
           </div>
         </div>
         <!-- ******************************************* -->
@@ -152,7 +155,7 @@
       <!-- ******************************************* -->
       <!-- *********************End of main section********************** -->
       <section class="part2">
-        <p class="sevendays-forecast">3 DAYS FORECAST</p>
+        <p class="threedays-forecast">3 DAYS FORECAST</p>
         <div class="days"></div>
       </section>
     </section>
@@ -163,5 +166,3 @@
     <script src="external.js"></script>
   </body>
 </html>
-
-<!-- ****************************** -->

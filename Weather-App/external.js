@@ -5,6 +5,7 @@ const error = document.querySelector(".error");
 const loader = document.querySelector(".loader");
 const dateElement = document.querySelector(".date");
 const tempElement = document.querySelector(".temp");
+const conditionDescElement = document.querySelector(".condition-desc");
 const weatherImageElement = document.querySelector(".img-weather");
 const forecastSectionsElement = document.querySelector(".forecastsections");
 const weatherDetailsElement = document.querySelector(".weatherdetails2");
@@ -14,6 +15,21 @@ const fSpan = document.querySelector(".F");
 
 let isFahrenheit = false;
 let weatherData = null;
+let errorTimeout = null;
+
+function showError() {
+  error.style.display = "block";
+  if (errorTimeout) clearTimeout(errorTimeout);
+  errorTimeout = setTimeout(() => {
+    error.style.display = "none";
+  }, 1200);
+}
+
+// Hide error message when user starts typing
+searchInput.addEventListener("input", () => {
+  error.style.display = "none";
+  if (errorTimeout) clearTimeout(errorTimeout);
+});
 
 // Toggle Units
 cSpan.addEventListener("click", () => {
@@ -45,7 +61,7 @@ searchInput.addEventListener("keydown", function (e) {
     }
   }
 });
-
+getWeatherData(`Cairo`);
 // Fetch Weather Data
 async function getWeatherData(city) {
   const url = `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${city}&days=7&aqi=no&alerts=no`;
@@ -56,23 +72,21 @@ async function getWeatherData(city) {
     const response = await fetch(url);
 
     if (!response.ok) {
-      error.style.display = "block"; //error message
+      showError();
       loader.parentElement.style.display = "none";
       return;
     }
 
     const data = await response.json();
     error.style.display = "none"; //hide error if success
+    if (errorTimeout) clearTimeout(errorTimeout);
 
     weatherData = data; //  Save the data for switching units
-    //loading for error
-    setTimeout(() => {
-      updateUI(weatherData);
-      loader.parentElement.style.display = "none";
-    }, 2000);
+    updateUI(weatherData);
+    loader.parentElement.style.display = "none";
   } catch (err) {
     console.log("Fetch error:", err);
-    error.style.display = "block"; // مشكله فى الشبكه
+    showError();
     loader.parentElement.style.display = "none"; // loader -> none
   }
 }
@@ -82,6 +96,7 @@ function updateUI(data) {
   const current = data.current;
   const forecast = data.forecast.forecastday;
   const city = data.location.name;
+
   cityElement.textContent = city;
 
   // Date
@@ -93,20 +108,27 @@ function updateUI(data) {
     },
   )}, ${currentDate.toLocaleString("en-US", { weekday: "long" })}`;
   dateElement.textContent = formattedDate;
+  //Image Of The Day
+  if (weatherImageElement) {
+    weatherImageElement.src = `https:${current.condition.icon}`;
+    weatherImageElement.alt = current.condition.text;
+  }
 
   // Temperature Main
   tempElement.textContent = isFahrenheit
     ? `${Math.round(current.temp_f)}°/${Math.round(current.feelslike_f)}°`
     : `${Math.round(current.temp_c)}°/${Math.round(current.feelslike_c)}°`;
 
+  if (conditionDescElement) {
+    conditionDescElement.textContent = current.condition.text;
+  }
+
   // weatherImageElement.src = current.condition.icon;
 
-  // 7hoursForecast
   // 3-Hours Forecast (8 times a day)
-  // const forecastSectionsElement = document.querySelector(".forecastsections");
   forecastSectionsElement.innerHTML = "";
   const hours = forecast[0].hour;
-  const threeHourForecast = hours.filter((_, index) => index % 4 === 0);
+  const threeHourForecast = hours.filter((_, index) => index % 3 === 0);
   threeHourForecast.forEach((hourData) => {
     const hourTime = new Date(hourData.time).toLocaleString("en-US", {
       hour: "2-digit",
@@ -121,7 +143,7 @@ function updateUI(data) {
     forecastDiv.classList.add("forecast-item");
     forecastDiv.innerHTML = `
       <p class="timer">${hourTime}</p>
-      <img src="${hourData.condition.icon}" alt="${hourData.condition.text}"/>
+      <img src="https:${hourData.condition.icon}" alt="${hourData.condition.text}"/>
       <p class="temperature">${temp}</p>
     `;
     forecastSectionsElement.appendChild(forecastDiv);
@@ -197,17 +219,16 @@ function updateUI(data) {
   `;
 
   // 3 Days Forecast
-  const daysElement = document.querySelector(".days");
   daysElement.innerHTML = "";
   forecast.slice(0, 3).forEach((day) => {
     const dayDiv = document.createElement("div");
     dayDiv.classList.add("day-item");
     dayDiv.innerHTML = `  <p class="timer">${day.date}</p>
-    <p class="day'sname">${new Date(day.date).toLocaleString("en-US", { weekday: "short" })}
+    <p class="day-name">${new Date(day.date).toLocaleString("en-US", { weekday: "short" })}
     </p>
-    <img src="${day.day.condition.icon}"alt="${day.day.condition.text}"/>
+    <img src="https:${day.day.condition.icon}"alt="${day.day.condition.text}"/>
     <p class="condition">${day.day.condition.text}</p>
-    <p class="temperature">${Math.round(day.day.avgtemp_c)}°</p>
+    <p class="temperature">${isFahrenheit ? Math.round(day.day.avgtemp_f) : Math.round(day.day.avgtemp_c)}°</p>
      <div class="Tempreverse">${
        isFahrenheit
          ? `${Math.round(day.day.maxtemp_f)}°/${Math.round(day.day.mintemp_f)}°`
