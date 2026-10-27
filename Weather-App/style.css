@@ -50,8 +50,8 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: black;
-  /* background-color: #e2e8f0; */
+  /* background-color: black; */
+  background-color: #e2e8f0;
   padding: 4px;
   border-radius: 30px;
   cursor: pointer;
@@ -71,26 +71,48 @@ body {
 .theme-switch span.active {
   background-color: #1e293b;
 }
-.theme-switch img {
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  object-fit: contain;
+
+.theme-switch SVG {
+  display: block;
+  transition: transform 0.25s ease;
+}
+.theme-switch span:hover svg {
+  transform: scale(1.1);
+}
+.theme-switch .light-mode.active svg {
+  color: #eedc3b;
+}
+.theme-switch .dark-mode.active svg {
+  color: #3e5ba0;
 }
 body.dark {
   background-color: #0f172a;
   color: #f8fafc;
 }
+
+body.dark .switch label,
 body.dark .cityAndimage,
 body.dark .forecast,
 body.dark .weather-details,
+body.dark .part2 .theme-switch,
+body.dark .theme-switch,
 body.dark .part2 {
   background-color: #1e293b;
   border-color: #334155;
   color: #f8fafc;
 }
+body.dark .weather span {
+  color: #f8fafc;
+}
+body.dark .switch label span.active {
+  background-color: #345b81;
+  border-color: #334155;
+  color: #5f7496;
+}
 body.dark .cityAndimage .name,
-body.dark .cityAndimage .temp {
+body.dark .cityAndimage .temp,
+body.dark .day-item,
+body.dark .day-name {
   color: #f8fafc;
 }
 body.dark .day-item {
@@ -582,6 +604,7 @@ body.dark .search {
   font-size: 14px;
   color: #1e293b;
   min-width: 45px;
+  padding-left: 6px;
 }
 
 /* ****************Loading Text**************** */
