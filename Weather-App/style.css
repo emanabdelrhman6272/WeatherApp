@@ -45,6 +45,66 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   text-decoration: none;
 }
+/* ************************Dark & Light Mode ***************************** */
+.theme-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: black;
+  /* background-color: #e2e8f0; */
+  padding: 4px;
+  border-radius: 30px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+.dark-mode,
+.light-mode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3 ease;
+}
+.theme-switch span.active {
+  background-color: #1e293b;
+}
+.theme-switch img {
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+body.dark {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+body.dark .cityAndimage,
+body.dark .forecast,
+body.dark .weather-details,
+body.dark .part2 {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #f8fafc;
+}
+body.dark .cityAndimage .name,
+body.dark .cityAndimage .temp {
+  color: #f8fafc;
+}
+body.dark .day-item {
+  border-color: #334155;
+  color: #cbd5e1;
+}
+body.dark .day-item:hover {
+  background-color: #334155;
+}
+body.dark .search {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #f8fafc;
+}
 
 /* ****************Error Message**************** */
 .error {

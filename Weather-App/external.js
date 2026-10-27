@@ -12,6 +12,8 @@ const weatherDetailsElement = document.querySelector(".weatherdetails2");
 const daysElement = document.querySelector(".days");
 const cSpan = document.querySelector(".C");
 const fSpan = document.querySelector(".F");
+const darkModeBtn = document.querySelector(".dark-mode");
+const lightModeBtn = document.querySelector(".light-mode");
 
 let isFahrenheit = false;
 let weatherData = null;
@@ -328,6 +330,24 @@ function updateUI(data) {
 
   if (conditionDescElement) {
     conditionDescElement.textContent = current.condition.text;
+  }
+  //DarkMode Main
+  darkModeBtn.addEventListener("click", () => {
+    document.body.classList.add("dark");
+    darkModeBtn.classList.add("active");
+    lightModeBtn.classList.remove("active");
+    localStorage.setItem("theme", "dark");
+  });
+  lightModeBtn.addEventListener("click", () => {
+    document.body.classList.remove("dark");
+    lightModeBtn.classList.add("active");
+    darkModeBtn.classList.remove("active");
+    localStorage.setItem("theme", "light");
+  });
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+    darkModeBtn.classList.add("active");
+    lightModeBtn.classList.remove("active");
   }
 
   // weatherImageElement.src = current.condition.icon;
